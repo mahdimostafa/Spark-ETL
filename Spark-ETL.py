@@ -39,20 +39,28 @@ def create_spark_session():
 
 
 def process_song_data(spark, input_data, output_data):
+    
+"""
+    Description: This function can be used to read the file in the filepath (s3a../song_data)
+    to get the song and artist info and used to populate the song and artist tables.
 
-    song_data = input_data+"song_data/*/*/*/*.json"
+    Arguments: 
+    song_data: song data file path.
+    spark.read.json(): reads json filepath
 
-    df = spark.read.json(song_data)
-
+    Returns:
+        None
+"""
+    
+    song_data = input_data+"s3a://udacity-dend/song_data"
+    
+    df = spark.read.json(song_data).dropDuplicates(['artist_id'])
+    
     songs_table = df['song_id', 'title', 'artist_id', 'year', 'duration']
-    songs_table.printSchema()
-    songs_table.show()
 
     songs_table.write.partitionBy('year', 'artist_id').parquet(os.path.join(output_data, 'songs.par'), 'overwrite')
 
     artists_table = df['artist_id', 'artist_name', 'artist_location', 'artist_latitude', 'artist_longitude']
-
-    artists_table = artists_table.dropDuplicates(['artist_id'])
 
     artists_table.write.parquet(os.path.join(output_data, 'artists.par'), 'overwrite')
 
