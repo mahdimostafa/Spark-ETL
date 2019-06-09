@@ -26,7 +26,7 @@ def create_spark_session():
     the spark environment.
 
     Arguments:
-    spark: the spark object.  
+    spark: the spark object.
 
     Returns:
         spark
@@ -38,43 +38,27 @@ def create_spark_session():
     return spark
 
 
-def process_song_data(spark, input_data, output_data):
-    
-"""
-    Description: This function can be used to read the file in the filepath (s3a../song_data)
-    to get the song and artist info and used to populate the song and artist tables.
+def process_log_data(spark, input_data, output_data):
 
-    Arguments: 
-    song_data: song data file path.
+"""
+    Description: This function can be used to read the file in the log_data (s3a../log_data)
+    to get the user and time info and used to populate the users and time tables and the songplays_table.
+
+    Arguments:
+    log_data: log data file path.
     spark.read.json(): reads json filepath
 
     Returns:
         None
 """
-    
-    song_data = input_data+"s3a://udacity-dend/song_data"
-    
-    df = spark.read.json(song_data).dropDuplicates(['artist_id'])
-    
-    songs_table = df['song_id', 'title', 'artist_id', 'year', 'duration']
 
-    songs_table.write.partitionBy('year', 'artist_id').parquet(os.path.join(output_data, 'songs.par'), 'overwrite')
+    log_data = input_data+"s3a://udacity-dend/log_data"
 
-    artists_table = df['artist_id', 'artist_name', 'artist_location', 'artist_latitude', 'artist_longitude']
-
-    artists_table.write.parquet(os.path.join(output_data, 'artists.par'), 'overwrite')
-
-def process_log_data(spark, input_data, output_data):
-
-    log_data = spark.read.json('Desktop/git/spark-etl/2018-11-01-events.json')
-
-    df = log_data
+    df = spark.read.json(log_data).dropDuplicates(['userId'])
 
     df = df[df['page'] == 'NextSong']
 
     users_table = df['userId','firstName','lastName','gender','level']
-
-    users_table = users_table.dropDuplicates(['userId'])
 
     users_table.write.parquet(os.path.join(output_data, 'log.par'), 'overwrite')
 
@@ -111,16 +95,10 @@ def process_log_data(spark, input_data, output_data):
 
     songplays_table = df['songplay_id','ts','userId', 'level', 'song_id', 'artist_id', 'sessionId', 'location', 'userAgent']
 
-    # write songplays table to parquet files partitioned by year and month
-    songplays_table.write.parquet(os.path.join(output_data,"songplay"), 'overwrite')
+
+    songplays_table.write.partitionBy('month', 'year').parquet(os.path.join(output_data,"songplay"), 'overwrite')
 
 def main():
-    spark = create_spark_session()
-    input_data = "s3a://udacity-dend/"
-    output_data = "s3a://output_data/"
-
-    process_song_data(spark, input_data, output_data)
-    process_log_data(spark, input_data, output_data)
 
 
 if __name__ == "__main__":
