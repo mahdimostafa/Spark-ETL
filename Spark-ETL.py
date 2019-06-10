@@ -99,6 +99,8 @@ def process_log_data(spark, input_data, output_data):
     songplays_table.write.partitionBy('month', 'year').parquet(os.path.join(output_data,"songplay"), 'overwrite')
 
 def main():
+    spark = create_spark_session()
+    input_data = "s3a://udacity-dend/"
 
 
 if __name__ == "__main__":
