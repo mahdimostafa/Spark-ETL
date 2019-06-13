@@ -62,7 +62,7 @@ def process_log_data(spark, input_data, output_data):
 
     users_table.write.parquet(os.path.join(output_data, 'log.par'), 'overwrite')
 
-
+    
     get_timestamp = udf(lambda x : datetime.datetime.fromtimestamp(x/1000.0).strftime('%Y-%m-%d %H:%M:%S'))
     df = df.withColumn("timestamp", get_timestamp(df.ts))
 
@@ -100,7 +100,7 @@ def process_log_data(spark, input_data, output_data):
 
 def main():
     spark = create_spark_session()
-    input_data = "s3a://udacity-dend/"
+    input_data = "s3a://input_data/"
     output_data = "s3a://output_data/"
 
     process_song_data(spark, input_data, output_data)
